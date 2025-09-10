@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Sistema de Encaminhamento Escolar</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    h2 { margin-top: 30px; }
+    .card { border: 1px solid #ccc; padding: 15px; margin-bottom: 15px; border-radius: 8px; }
+    button { margin-top: 10px; }
+  </style>
+</head>
+<body>
+
+  <h1>Sistema de Encaminhamento Escolar</h1>
+
+  <!-- Área do Professor -->
+  <div class="card">
+    <h2>Professor - Novo Encaminhamento</h2>
+    <label>Aluno: <input type="text" id="aluno"></label><br><br>
+    <label>Tipo:
+      <select id="tipo">
+        <option value="Pedagogo">Pedagogo</option>
+        <option value="Psicólogo">Psicólogo</option>
+      </select>
+    </label><br><br>
+    <button onclick="novoEncaminhamento()">Enviar</button>
+  </div>
+
+  <!-- Área do Coordenador -->
+  <div class="card">
+    <h2>Coordenador - Acompanhamento</h2>
+    <button onclick="mostrarEncaminhamentos()">Atualizar Lista</button>
+    <div id="lista"></div>
+  </div>
+
+  <script>
+    // Carrega os encaminhamentos do localStorage ou inicia vazio
+    let encaminhamentos = JSON.parse(localStorage.getItem("encaminhamentos")) || [];
+
+    function salvarEncaminhamentos() {
+      localStorage.setItem("encaminhamentos", JSON.stringify(encaminhamentos));
+    }
+
+    // Criar um novo encaminhamento
+    function novoEncaminhamento() {
+      const aluno = document.getElementById("aluno").value;
+      const tipo = document.getElementById("tipo").value;
+
+      if (!aluno) {
+        alert("Digite o nome do aluno!");
+        return;
+      }
+
+      const registro = {
+        id: Date.now(),
+        aluno,
+        tipo,
+        status: "Pendente"
+      };
+
+      encaminhamentos.push(registro);
+      salvarEncaminhamentos();
+
+      alert("Encaminhamento enviado!");
+      document.getElementById("aluno").value = "";
+      mostrarEncaminhamentos();
+    }
+
+    // Exibir encaminhamentos
+    function mostrarEncaminhamentos() {
+      const lista = document.getElementById("lista");
+      lista.innerHTML = "";
+
+      if (encaminhamentos.length === 0) {
+        lista.innerHTML = "<p>Nenhum encaminhamento registrado.</p>";
+        return;
+      }
+
+      encaminhamentos.forEach(item => {
+        const div = document.createElement("div");
+        div.className = "card";
+        div.innerHTML = `
+          <b>Aluno:</b> ${item.aluno}<br>
+          <b>Encaminhado para:</b> ${item.tipo}<br>
+          <b>Status:</b> ${item.status}<br>
+          <button onclick="atualizarStatus(${item.id}, 'Em atendimento')">Em atendimento</button>
+          <button onclick="atualizarStatus(${item.id}, 'Concluído')">Concluir</button>
+        `;
+        lista.appendChild(div);
+      });
+    }
+
+    // Atualizar status
+    function atualizarStatus(id, novoStatus) {
+      const index = encaminhamentos.findIndex(item => item.id === id);
+      if (index > -1) {
+        encaminhamentos[index].status = novoStatus;
+        salvarEncaminhamentos();
+        mostrarEncaminhamentos();
+      }
+    }
+
+    // Mostrar encaminhamentos ao carregar a página
+    window.onload = mostrarEncaminhamentos;
+  </script>
+
+</body>
+</html>
